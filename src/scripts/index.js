@@ -1,16 +1,22 @@
 import '../styles/pages/index.css'; // добавьте импорт главного файла стилей
-import { initialCards } from './cards.js';
+import { initialCards, useCard } from './cards.js';
 import { useProfile } from './profile.js';
 
-const { formElement, submitForm } = useProfile();
+const { form: profileForm, submitForm } = useProfile();
+
+const { form: cardForm, submitForm: submitCardForm } = useCard();
 
 const cardTemplate = document.querySelector('#card-template').content;
 const cardElement = cardTemplate.querySelector('.card');
 const container = document.querySelector('.places__list');
 
-formElement.addEventListener('submit', function (evt) {
+profileForm.addEventListener('submit', function (evt) {
     evt.preventDefault();
     submitForm();
+});
+cardForm.addEventListener('submit', function (evt) {
+    evt.preventDefault();
+    submitCardForm();
 });
 
 const createCard = ({ name, link }) => {
