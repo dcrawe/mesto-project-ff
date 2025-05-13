@@ -1,5 +1,8 @@
 import '../styles/pages/index.css'; // добавьте импорт главного файла стилей
 import { initialCards } from './cards.js';
+import { useProfile } from './profile.js';
+
+useProfile();
 
 const cardTemplate = document.querySelector('#card-template').content;
 const cardElement = cardTemplate.querySelector('.card');
