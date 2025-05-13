@@ -3,28 +3,46 @@ import { usePopup } from "./popup";
 
 export function useProfile() {
     const editButton = document.querySelector('.profile__edit-button');
-    const addButton = document.querySelector('.profile__add-button');
-    const profilePopup = document.querySelector('.popup_type_new-card');
-
-    const formElement = document.querySelector('.popup__form[name="new-place"]');
-    const nameInput = formElement.querySelector('.popup__input_type_card-name');
-    const avatarInput = formElement.querySelector('.popup__input_type_url');
+    const profilePopup = document.querySelector('.popup_type_edit');
+    const formElement = document.querySelector('.popup__form[name="edit-profile"]');
+    const nameInput = formElement.querySelector('.popup__input_type_name');
+    const jobInput = formElement.querySelector('.popup__input_type_description');
     const profileName = document.querySelector('.profile__title');
-    const profileAvatar = document.querySelector('.profile__avatar');
-
-    function fillProfileForm() {
-        nameInput.value = profileName.textContent;
-        avatarInput.value = profileAvatar.src;
-    }
-
+    const profileJob = document.querySelector('.profile__description');
+    const fillNameInput = (value) => nameInput.value = value;
+    const fillAvatarInput = (value) => jobInput.value = value;
+    const setNameInput = (value) => profileName.textContent = value;
+    const setAvatarInput = (value) => profileJob.textContent = value;
     const {
+        closePopup,
         initListener,
     } = usePopup(profilePopup);
-    const { setOpenCallback: setOpenCallbackAdd, setCloseCallback: setCloseCallbackAdd } = initListener(addButton);
-    const { setOpenCallback: setOpenCallbackEdit, setCloseCallback: setCloseCallbackEdit } = initListener(editButton);
+    const {setOpenCallback: setOpenCallbackEdit, setCloseCallback: setCloseCallbackEdit} = initListener(editButton);
+
+    function fillProfileForm() {
+        fillNameInput(profileName.textContent);
+        fillAvatarInput(profileJob.textContent);
+    }
+
+    function resetProfileForm() {
+        formElement.reset();
+    }
+
+    function submitForm() {
+        closePopup();
+
+        return new Promise((resolve) => {
+            setNameInput(nameInput.value);
+            setAvatarInput(jobInput.value);
+            resolve();
+        });
+    }
+
     setOpenCallbackEdit(fillProfileForm);
+    setCloseCallbackEdit(resetProfileForm);
 
     return {
-
+        formElement,
+        submitForm
     }
 }

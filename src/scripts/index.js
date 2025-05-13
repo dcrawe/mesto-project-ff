@@ -2,11 +2,16 @@ import '../styles/pages/index.css'; // добавьте импорт главн�
 import { initialCards } from './cards.js';
 import { useProfile } from './profile.js';
 
-useProfile();
+const { formElement, submitForm } = useProfile();
 
 const cardTemplate = document.querySelector('#card-template').content;
 const cardElement = cardTemplate.querySelector('.card');
 const container = document.querySelector('.places__list');
+
+formElement.addEventListener('submit', function (evt) {
+    evt.preventDefault();
+    submitForm();
+});
 
 const createCard = ({ name, link }) => {
     if (!name || !link) return;
