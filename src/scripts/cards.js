@@ -27,7 +27,7 @@ export const initialCards = [
     }
 ];
 
-export function useCard() {
+export function useCard(options = {}) {
     const addButton = document.querySelector('.profile__add-button');
     const popup = document.querySelector('.popup_type_new-card');
     const form = document.querySelector('.popup__form[name="new-place"]');
@@ -40,41 +40,60 @@ export function useCard() {
     } = usePopup(popup);
     const {setCloseCallback} = initListener(addButton);
     const resetCardForm = () => form.reset();
+    const createCard = async (name, link) => new Promise((resolve, reject) => {
+        const cardTemplate = document.querySelector('#card-template').content;
+        const cardElement = cardTemplate.querySelector('.card');
+        const newCard = cardElement.cloneNode(true);
 
-    function submitForm() {
-        return new Promise((resolve) => {
-            const cardTemplate = document.querySelector('#card-template').content;
-            const cardElement = cardTemplate.querySelector('.card');
-            const newCard = cardElement.cloneNode(true);
+        const cardImgNode = newCard.querySelector('.card__image');
+        const cardTitleNode = newCard.querySelector('.card__title');
+        const deleteButton = newCard.querySelector('.card__delete-button');
+        const likeButton = newCard.querySelector('.card__like-button');
 
-            const cardImgNode = newCard.querySelector('.card__image');
-            const cardTitleNode = newCard.querySelector('.card__title');
-            const deleteButton = newCard.querySelector('.card__delete-button');
-            const likeButton = newCard.querySelector('.card__like-button');
+        const {
+            onRemoveClick = (deleteButton, newCard) => newCard.remove(),
+            onLikeClick = (likeButton) => likeButton.classList.toggle('card__like-button_is-active'),
+        } = options;
 
-            const name = nameInput.value;
-            const link = urlInput.value;
+        if (name && link) {
+            cardImgNode.src = link;
+            cardImgNode.alt = name;
+            cardTitleNode.textContent = name;
 
-            if (name && link) {
-                cardImgNode.src = link;
-                cardImgNode.alt = name;
-                cardTitleNode.textContent = name;
+            deleteButton.addEventListener('click', () => onRemoveClick(likeButton, newCard));
+            likeButton.addEventListener('click', () => onLikeClick(likeButton, newCard));
 
-                deleteButton.addEventListener('click', () => newCard.remove());
-                likeButton.addEventListener('click', () => likeButton.classList.toggle('card__like-button_is-active'));
+            resolve(newCard);
+        } else {
+            reject();
+        }
 
-                cardsList.prepend(newCard);
-            }
+        closePopup();
+    })
+    const renderInitialCards = async () => {
+        const fragment = document.createDocumentFragment();
+        const cards = await Promise.all(
+            initialCards.map(({name, link}) => createCard(name, link))
+        );
 
-            closePopup();
-            resolve();
+        cards.forEach(card => {
+            if (card) fragment.append(card);
         });
+        cardsList.append(fragment);
+    }
+    const submitForm = async () => {
+        const name = nameInput.value;
+        const link = urlInput.value;
+        const card = await createCard(name, link);
+
+        cardsList.prepend(card);
     }
 
     setCloseCallback(resetCardForm);
 
     return {
         form,
-        submitForm
+        submitForm,
+        renderInitialCards,
     }
 }
