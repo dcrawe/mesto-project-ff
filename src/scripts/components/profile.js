@@ -17,7 +17,7 @@ export function useProfile() {
         closePopup,
         initListener,
     } = usePopup(popup);
-    const {setOpenCallback, setCloseCallback} = initListener(editButton);
+    const {on} = initListener(editButton);
 
     function fillProfileForm() {
         fillNameInput(profileName.textContent);
@@ -37,8 +37,8 @@ export function useProfile() {
         });
     }
 
-    setOpenCallback(fillProfileForm);
-    setCloseCallback(resetProfileForm);
+    on('open', fillProfileForm);
+    on('close', resetProfileForm);
 
     return {
         form,

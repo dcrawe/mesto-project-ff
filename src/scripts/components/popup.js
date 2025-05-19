@@ -1,18 +1,22 @@
 export function usePopup(popup) {
-    const openCallbacks = [];
-    const closeCallbacks = [];
+    const events = {
+        open: new Set(),
+        close: new Set()
+    };
 
-    const executeCallbacks = (callbacks, popup) => callbacks.forEach(callback => callback(popup));
-    const executeOpenCallbacks = () => executeCallbacks(openCallbacks, popup);
-    const executeCloseCallbacks = () => executeCallbacks(closeCallbacks, popup);
+    const emit = (event, data) => events[event].forEach(callback => callback(data));
+    const on = (event, callback) => {
+        events[event].add(callback);
+        return () => events[event].delete(callback);
+    }
 
     function openPopup() {
+        emit('open', popup);
         popup.classList.add('popup_is-opened');
-        executeOpenCallbacks();
     }
     function closePopup() {
+        emit('close', popup);
         popup.classList.remove('popup_is-opened');
-        executeCloseCallbacks();
     }
 
     function initListener(button, closeButton) {
@@ -35,16 +39,8 @@ export function usePopup(popup) {
             }
         });
 
-        function setOpenCallback(callback) {
-            openCallbacks.push(callback);
-        }
-        function setCloseCallback(callback) {
-            closeCallbacks.push(callback);
-        }
-
         return {
-            setOpenCallback,
-            setCloseCallback,
+            on,
         }
     }
 
