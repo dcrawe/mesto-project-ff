@@ -1,30 +1,3 @@
-export const initialCards = [
-    {
-      name: "Архыз",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/arkhyz.jpg",
-    },
-    {
-      name: "Челябинская область",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/chelyabinsk-oblast.jpg",
-    },
-    {
-      name: "Иваново",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/ivanovo.jpg",
-    },
-    {
-      name: "Камчатка",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/kamchatka.jpg",
-    },
-    {
-      name: "Холмогорский район",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/kholmogorsky-rayon.jpg",
-    },
-    {
-      name: "Байкал",
-      link: "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/baikal.jpg",
-    }
-];
-
 export function useCard(options = {}) {
     const config = {
         selectors: {
@@ -37,13 +10,18 @@ export function useCard(options = {}) {
             cardsList: '.places__list',
             popupImage: '.popup__image',
             popupCaption: '.popup__caption',
-            cardTemplate: '#card-template'
+            cardTemplate: '#card-template',
+            cardElement: '.card',
+            cardImage: '.card__image',
+            cardTitle: '.card__title',
+            deleteButton: '.card__delete-button',
+            likeButton: '.card__like-button'
         },
         callbacks: {
             onRemoveClick: (deleteButton, card) => card.remove(),
             onLikeClick: (likeButton) => likeButton.classList.toggle('card__like-button_is-active')
         },
-        popupModule: null, // будет передан извне
+        popupModule: null,
         ...options
     };
 
@@ -68,67 +46,86 @@ export function useCard(options = {}) {
     } = usePopup(imagePopup);
 
     const resetCardForm = () => form.reset();
-    const createCard = async (name, link) => new Promise((resolve, reject) => {
-        const throwReject = (error) => {
-            return reject(new Error(error));
-        }
-
+    const validatedElements = () => {
+        const error = (error) => throw new Error(error)
         const cardTemplate = document.querySelector(config.selectors.cardTemplate)?.content;
 
         if (!cardTemplate) {
-            return throwReject(`Шаблон карточки не найден: ${config.selectors.cardTemplate}`);
+            error(`Шаблон карточки не найден: ${config.selectors.cardTemplate}`);
         }
 
-        const cardElement = cardTemplate.querySelector('.card');
+        const cardElement = cardTemplate.querySelector(config.selectors.cardElement);
 
         if (!cardElement) {
-            return throwReject('Элемент .card не найден в шаблоне');
+            error(`Элемент ${config.selectors.cardElement} не найден в шаблоне`);
         }
 
         const newCard = cardElement.cloneNode(true);
-        const cardImgNode = newCard.querySelector('.card__image');
+        const cardImgNode = newCard.querySelector(config.selectors.cardImage);
 
         if (!cardImgNode) {
-            return throwReject('Элемент .card__image не найден в карточке');
+            error(`Элемент ${config.selectors.cardImage} не найден в карточке`);
         }
 
-        const cardTitleNode = newCard.querySelector('.card__title');
-        const deleteButton = newCard.querySelector('.card__delete-button');
-        const likeButton = newCard.querySelector('.card__like-button');
+        const cardTitleNode = newCard.querySelector(config.selectors.cardTitle);
+        const deleteButton = newCard.querySelector(config.selectors.deleteButton);
+        const likeButton = newCard.querySelector(config.selectors.likeButton);
 
+        return {
+            cardTemplate,
+            cardElement,
+            newCard,
+            cardImgNode,
+            cardTitleNode,
+            deleteButton,
+            likeButton
+        }
+    }
+    const createCard = async (name, link) => new Promise((resolve, reject) => {
         if (!name || !link) {
             return reject(new Error('Название или URL карточки отсутствуют'));
         }
 
-        cardImgNode.src = link;
-        cardImgNode.alt = name;
-        cardTitleNode.textContent = name;
+        try {
+            const {
+                newCard,
+                cardImgNode,
+                cardTitleNode,
+                deleteButton,
+                likeButton,
+            } = validatedElements();
 
-        const { on } = initListenerImagePopup(cardImgNode);
+            cardImgNode.src = link;
+            cardImgNode.alt = name;
+            cardTitleNode.textContent = name;
 
-        deleteButton?.addEventListener('click', () => config.callbacks.onRemoveClick(deleteButton, newCard));
-        likeButton?.addEventListener('click', () => config.callbacks.onLikeClick(likeButton, newCard));
+            const { on } = initListenerImagePopup(cardImgNode);
 
-        on('open', () => {
-            if (popupImage && popupCaption) {
-                popupImage.src = link;
-                popupImage.alt = name;
-                popupCaption.textContent = name;
-            }
-        });
+            deleteButton?.addEventListener('click', () => config.callbacks.onRemoveClick(deleteButton, newCard));
+            likeButton?.addEventListener('click', () => config.callbacks.onLikeClick(likeButton, newCard));
 
-        resolve(newCard);
+            on('open', () => {
+                if (popupImage && popupCaption) {
+                    popupImage.src = link;
+                    popupImage.alt = name;
+                    popupCaption.textContent = name;
+                }
+            });
 
-        closePopup();
+            resolve(newCard);
+            closePopup();
+        } catch (error) {
+            return reject(error);
+        }
     })
-    const renderInitialCards = async () => {
+    const renderInitialCards = async (cardsData) => {
         if (!cardsList) return;
 
         const fragment = document.createDocumentFragment();
 
         try {
             const cards = await Promise.all(
-                initialCards.map(({name, link}) => createCard(name, link))
+                cardsData.map(({name, link}) => createCard(name, link))
             );
 
             cards.forEach(card => {
@@ -167,5 +164,6 @@ export function useCard(options = {}) {
         form,
         submitForm,
         renderInitialCards,
+        createCard,
     }
 }

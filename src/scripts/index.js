@@ -1,6 +1,7 @@
 import '../styles/pages/index.css'; // добавьте импорт главного файла стилей
 import { useCard } from './components/card.js';
 import { useProfile } from './components/profile.js';
+import { initialCards } from './data/cards.js';
 
 const { form: profileForm, submitForm } = useProfile();
 const { form: cardForm, submitForm: submitCardForm, renderInitialCards } = useCard();
@@ -14,4 +15,4 @@ cardForm.addEventListener('submit', function (evt) {
     submitCardForm();
 });
 
-renderInitialCards();
+renderInitialCards(initialCards);
