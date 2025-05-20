@@ -47,7 +47,7 @@ export function useCard(options = {}) {
 
     const resetCardForm = () => form.reset();
     const validatedElements = () => {
-        const error = (error) => throw new Error(error)
+        const error = (error) => {throw new Error(error)}
         const cardTemplate = document.querySelector(config.selectors.cardTemplate)?.content;
 
         if (!cardTemplate) {
