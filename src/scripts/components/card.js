@@ -1,3 +1,4 @@
+import {usePopup} from './popup.js';
 export function useCard(options = {}) {
     const config = {
         selectors: {
@@ -21,34 +22,36 @@ export function useCard(options = {}) {
             onRemoveClick: (deleteButton, card) => card.remove(),
             onLikeClick: (likeButton) => likeButton.classList.toggle('card__like-button_is-active')
         },
-        popupModule: null,
+        popupModule: usePopup,
+        domElements: {},
         ...options
     };
 
-    const usePopup = config.popupModule || require('./popup').usePopup;
-    const addButton = document.querySelector(config.selectors.addButton);
-    const popup = document.querySelector(config.selectors.popup);
-    const imagePopup = document.querySelector(config.selectors.imagePopup);
-    const form = document.querySelector(config.selectors.form);
+    const getElement = (key, selector) => config.domElements[key] || document.querySelector(selector);
+
+    const addButton = getElement('addButton', config.selectors.addButton);
+    const popup = getElement('popup', config.selectors.popup);
+    const imagePopup = getElement('imagePopup', config.selectors.imagePopup);
+    const form = getElement('form', config.selectors.form);
     const nameInput = form?.querySelector(config.selectors.nameInput);
     const urlInput = form?.querySelector(config.selectors.urlInput);
-    const cardsList = document.querySelector(config.selectors.cardsList);
+    const cardsList = getElement('cardsList', config.selectors.cardsList);
     const popupImage = imagePopup?.querySelector(config.selectors.popupImage);
     const popupCaption = imagePopup?.querySelector(config.selectors.popupCaption);
+
     const {
         closePopup,
         initListener: initListenerAddPopup,
-    } = usePopup(popup);
+    } = config.popupModule(popup);
+    const { on } = initListenerAddPopup(addButton);
+    const { initListener: initListenerImagePopup } = config.popupModule(imagePopup);
 
-    const {on} = initListenerAddPopup(addButton);
-    const {
-        initListener: initListenerImagePopup,
-    } = usePopup(imagePopup);
-
-    const resetCardForm = () => form.reset();
+    const resetCardForm = () => form?.reset();
     const validatedElements = () => {
-        const error = (error) => {throw new Error(error)}
-        const cardTemplate = document.querySelector(config.selectors.cardTemplate)?.content;
+        const error = (errorMsg) => {
+            throw new Error(errorMsg)
+        };
+        const cardTemplate = getElement('cardTemplate', config.selectors.cardTemplate)?.content;
 
         if (!cardTemplate) {
             error(`Шаблон карточки не найден: ${config.selectors.cardTemplate}`);
@@ -154,7 +157,7 @@ export function useCard(options = {}) {
 
             cardsList.prepend(card);
         } catch (error) {
-            console.error('Ошибка при добавлении новой карточки:', error);
+            throw new Error('Ошибка при создании карточки: ' + error.message);
         }
     }
 
