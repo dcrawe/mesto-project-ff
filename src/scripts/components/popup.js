@@ -40,10 +40,12 @@ export function usePopup(popup, options = {}) {
         };
     };
     const openPopup = (activator) => {
+        document.addEventListener('keydown', keydownHandler);
         emit('open', popup, activator);
         popup.classList.add(config.classNames.openedPopup);
     }
     const closePopup = () => {
+        document.removeEventListener('keydown', keydownHandler);
         emit('close', popup);
         popup.classList.remove(config.classNames.openedPopup);
     }
@@ -68,8 +70,6 @@ export function usePopup(popup, options = {}) {
                 if (evt.target === popup) closePopup();
             });
         }
-
-        document.addEventListener('keydown', keydownHandler);
 
         return {
             on: (event, callback) => on(event, callback, button),
