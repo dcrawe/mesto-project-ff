@@ -1,84 +1,31 @@
-export function usePopup(popup, options = {}) {
-    const config = {
-        classNames: {
-            openedPopup: 'popup_is-opened',
-        },
-        selectors: {
-            closeButton: '.popup__close',
-        },
-        keyboard: {
-            enabled: true,
-            closeKeys: ['Escape'],
-        },
-        overlay: {
-            closeOnClick: true,
-        },
-        ...options
-    };
-    const events = {
-        open: new Map(),
-        close: new Map(),
-    };
-    const emit = (event, data, activator) => {
-        if (activator && events[event].has(activator)) {
-            events[event].get(activator).forEach(callback => callback(data));
-        } else if (!activator) {
-            events[event].forEach(callbacks => callbacks.forEach(cb => cb(data)));
-        }
-    };
-    const on = (event, callback, activator) => {
-        if (!events[event].has(activator)) {
-            events[event].set(activator, []);
-        }
+export function openPopup(popup) {
+    popup.classList.add('popup_is-opened');
+    document.addEventListener('keydown', handleEscClose);
+}
 
-        events[event].get(activator).push(callback);
+export function closePopup(popup) {
+    popup.classList.remove('popup_is-opened');
+    document.removeEventListener('keydown', handleEscClose);
+}
 
-        return () => {
-            const callbacks = events[event].get(activator);
-            const index = callbacks.indexOf(callback);
-            if (index !== -1) callbacks.splice(index, 1);
-        };
-    };
-    const openPopup = (activator) => {
-        document.addEventListener('keydown', keydownHandler);
-        emit('open', popup, activator);
-        popup.classList.add(config.classNames.openedPopup);
+function handleEscClose(evt) {
+    if (evt.key === 'Escape') {
+        const openedPopup = document.querySelector('.popup_is-opened');
+        if (openedPopup) closePopup(openedPopup);
     }
-    const closePopup = () => {
-        document.removeEventListener('keydown', keydownHandler);
-        emit('close', popup);
-        popup.classList.remove(config.classNames.openedPopup);
+}
+
+export function setPopupEventListeners(popup) {
+    popup.addEventListener('mousedown', (evt) => {
+        if (evt.target === popup) {
+            closePopup(popup);
+        }
+    });
+
+    const closeButton = popup.querySelector('.popup__close');
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            closePopup(popup);
+        });
     }
-    const keydownHandler = (evt) => {
-        if (config.keyboard.enabled && config.keyboard.closeKeys.includes(evt.key)) {
-            closePopup();
-        }
-    };
-    const initListener = (button, closeButton) => {
-        const resultCloseButtons = closeButton ?? popup.querySelector(config.selectors.closeButton);
-
-        if (button) {
-            button.addEventListener('click', () => {
-                openPopup(button);
-            });
-        }
-        if (resultCloseButtons) {
-            resultCloseButtons.addEventListener('click', () => closePopup());
-        }
-        if (config.overlay.closeOnClick) {
-            popup.addEventListener('mousedown', (evt) => {
-                if (evt.target === popup) closePopup();
-            });
-        }
-
-        return {
-            on: (event, callback) => on(event, callback, button),
-        };
-    }
-
-    return {
-        openPopup,
-        closePopup,
-        initListener,
-    };
 }
