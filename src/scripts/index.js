@@ -1,4 +1,5 @@
 import '../styles/pages/index.css';
+import { enableValidation, resetFormValidation } from './utils/validation.js';
 import {createCard} from './components/card.js';
 import {initialCards} from './data/cards.js';
 import {openPopup, closePopup, setPopupEventListeners} from './components/popup.js';
@@ -108,3 +109,17 @@ profileForm.addEventListener('submit', handleProfileFormSubmit);
 cardForm.addEventListener('submit', submitCardForm);
 
 renderInitialCards(initialCards);
+
+const editProfileForm = document.forms['edit-profile'];
+
+if (editProfileForm) {
+    enableValidation(editProfileForm);
+}
+
+const editProfileButton = document.querySelector('.profile__edit-button');
+
+if (editProfileButton) {
+    editProfileButton.addEventListener('click', () => {
+        resetFormValidation('edit-profile');
+    });
+}
