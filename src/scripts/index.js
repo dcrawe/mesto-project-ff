@@ -1,5 +1,5 @@
 import '../styles/pages/index.css';
-import { enableValidation, resetFormValidation } from './utils/validation.js';
+import { enableValidation, clearValidation } from './utils/validation.js';
 import {createCard} from './components/card.js';
 import {initialCards} from './data/cards.js';
 import {openPopup, closePopup, setPopupEventListeners} from './components/popup.js';
@@ -23,6 +23,16 @@ const profileNameInput = profileForm.querySelector('.popup__input_type_name');
 const profileJobInput = profileForm.querySelector('.popup__input_type_description');
 const profileName = document.querySelector('.profile__title');
 const profileJob = document.querySelector('.profile__description');
+
+// Объект с настройками для валидации форм
+const validationConfig = {
+    formSelector: '.popup__form',
+    inputSelector: '.popup__input',
+    submitButtonSelector: '.popup__button',
+    inactiveButtonClass: 'popup__button_disabled',
+    inputErrorClass: 'popup__input_type_error',
+    errorClass: 'popup__error_visible'
+};
 
 setPopupEventListeners(cardPopup);
 setPopupEventListeners(imagePopup);
@@ -91,6 +101,7 @@ function submitCardForm(evt) {
 
         cardsList.prepend(card);
         cardForm.reset();
+        clearValidation(cardForm, validationConfig);
         closePopup(cardPopup);
     } catch (error) {
         console.error(error);
@@ -99,27 +110,16 @@ function submitCardForm(evt) {
 
 addButton.addEventListener('click', () => {
     cardForm.reset();
+    clearValidation(cardForm, validationConfig);
     openPopup(cardPopup);
 });
 editButton.addEventListener('click', () => {
     fillProfileForm();
+    clearValidation(profileForm, validationConfig);
     openPopup(profilePopup);
 });
 profileForm.addEventListener('submit', handleProfileFormSubmit);
 cardForm.addEventListener('submit', submitCardForm);
 
 renderInitialCards(initialCards);
-
-const editProfileForm = document.forms['edit-profile'];
-
-if (editProfileForm) {
-    enableValidation(editProfileForm);
-}
-
-const editProfileButton = document.querySelector('.profile__edit-button');
-
-if (editProfileButton) {
-    editProfileButton.addEventListener('click', () => {
-        resetFormValidation('edit-profile');
-    });
-}
+enableValidation(validationConfig);

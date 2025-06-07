@@ -20,10 +20,10 @@
 }
 
 .popup__button_disabled {
-  background-color: #F6F6F6;
+  background-color: #FFFFFF;
   color: #000000;
   opacity: 0.2;
-  border-bottom: 1px solid rgba(0, 0, 0, .2);
+  border: 1px solid rgba(0, 0, 0);
   pointer-events: none;
 }
 
