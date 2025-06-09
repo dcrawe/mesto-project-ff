@@ -41,6 +41,7 @@ const profileAvatarForm = document.querySelector('.popup__form[name="profile-ava
 const profileAvatarInput = profileAvatarForm.querySelector('.popup__input_type_avatar');
 
 // https://pictures.s3.yandex.net/frontend-developer/common/ava.jpg
+// https://pictures.s3.yandex.net/frontend-developer/cards-compressed/arkhyz.jpg
 
 // Объект с настройками для валидации форм
 const validationConfig = {
@@ -78,6 +79,11 @@ function updateProfileInfo({name, about, avatar}) {
 
     closePopup(profilePopup);
 }
+function updateProfileAvatar({avatar}) {
+    profileAvatar.src = avatar;
+
+    closePopup(profileAvatarPopup);
+}
 function handleProfileFormSubmit(evt) {
     evt.preventDefault();
 
@@ -102,19 +108,16 @@ function handleProfileAvatarFormSubmit(evt) {
     const avatarUrl = profileAvatarInput.value;
     const submitButton = evt.target.querySelector('.popup__button');
 
-    // submitButton.textContent = 'Сохранение...';
-    //
-    // updateAvatar(avatarUrl)
-    //     .then((data) => {
-    //         profileAvatar.src = data.avatar;
-    //         closePopup(profileAvatarPopup);
-    //     })
-    //     .catch((err) => {
-    //         console.log(`Ошибка при обновлении аватара: ${err}`);
-    //     })
-    //     .finally(() => {
-    //         submitButton.textContent = 'Сохранить';
-    //     });
+    submitButton.textContent = 'Сохранение...';
+
+    updateAvatar(avatarUrl)
+        .then(updateProfileAvatar)
+        .catch((err) => {
+            console.log(`Ошибка при обновлении аватара: ${err}`);
+        })
+        .finally(() => {
+            submitButton.textContent = 'Сохранить';
+        });
 }
 function handleDeleteCard(cardElement, card) {
     deleteCard(card._id)
@@ -214,7 +217,7 @@ addButton.addEventListener('click', () => {
 });
 profileAvatarLink.addEventListener('click', (e) => {
     e.preventDefault();
-    cardForm.reset();
+    profileAvatarForm.reset();
     clearValidation(profileAvatarForm, validationConfig);
     openPopup(profileAvatarPopup);
 });
