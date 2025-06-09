@@ -35,6 +35,12 @@ const profileTitle = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
 const profileAvatar = document.querySelector('.profile__avatar');
 const profileAvatarContainer = document.querySelector('.profile__image');
+const profileAvatarLink = document.querySelector('.profile__image');
+const profileAvatarPopup = document.querySelector('.popup_type_avatar');
+const profileAvatarForm = document.querySelector('.popup__form[name="profile-avatar"]');
+const profileAvatarInput = profileAvatarForm.querySelector('.popup__input_type_avatar');
+
+// https://pictures.s3.yandex.net/frontend-developer/common/ava.jpg
 
 // Объект с настройками для валидации форм
 const validationConfig = {
@@ -49,6 +55,7 @@ const validationConfig = {
 setPopupEventListeners(cardPopup);
 setPopupEventListeners(imagePopup);
 setPopupEventListeners(profilePopup);
+setPopupEventListeners(profileAvatarPopup);
 
 function fillProfileForm() {
     profileTitleInput.value = profileTitle.textContent;
@@ -88,6 +95,26 @@ function handleProfileFormSubmit(evt) {
         .finally(() => {
             submitButton.textContent = 'Сохранить';
         });
+}
+function handleProfileAvatarFormSubmit(evt) {
+    evt.preventDefault();
+
+    const avatarUrl = profileAvatarInput.value;
+    const submitButton = evt.target.querySelector('.popup__button');
+
+    // submitButton.textContent = 'Сохранение...';
+    //
+    // updateAvatar(avatarUrl)
+    //     .then((data) => {
+    //         profileAvatar.src = data.avatar;
+    //         closePopup(profileAvatarPopup);
+    //     })
+    //     .catch((err) => {
+    //         console.log(`Ошибка при обновлении аватара: ${err}`);
+    //     })
+    //     .finally(() => {
+    //         submitButton.textContent = 'Сохранить';
+    //     });
 }
 function handleDeleteCard(cardElement, card) {
     deleteCard(card._id)
@@ -185,6 +212,12 @@ addButton.addEventListener('click', () => {
     clearValidation(cardForm, validationConfig);
     openPopup(cardPopup);
 });
+profileAvatarLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    cardForm.reset();
+    clearValidation(profileAvatarForm, validationConfig);
+    openPopup(profileAvatarPopup);
+});
 editButton.addEventListener('click', () => {
     fillProfileForm();
     clearValidation(profileForm, validationConfig);
@@ -192,6 +225,7 @@ editButton.addEventListener('click', () => {
 });
 profileForm.addEventListener('submit', handleProfileFormSubmit);
 cardForm.addEventListener('submit', submitCardForm);
+profileAvatarForm.addEventListener('submit', handleProfileAvatarFormSubmit);
 
 
 Promise.all([getUserInfo(), getInitialCards()])
