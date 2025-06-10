@@ -1,5 +1,5 @@
 import '../styles/pages/index.css';
-import { enableValidation, clearValidation } from './utils/validation.js';
+import {enableValidation, clearValidation} from './utils/validation.js';
 import {createCard} from './components/card.js';
 import {openPopup, closePopup, setPopupEventListeners} from './components/popup.js';
 import {
@@ -62,6 +62,7 @@ function fillProfileForm() {
     profileTitleInput.value = profileTitle.textContent;
     profileDescriptionInput.value = profileDescription.textContent;
 }
+
 function updateProfileInfo({name, about, avatar}) {
     profileContainer.classList.add('hidden');
     profileAvatarContainer.classList.add('hidden');
@@ -79,11 +80,13 @@ function updateProfileInfo({name, about, avatar}) {
 
     closePopup(profilePopup);
 }
+
 function updateProfileAvatar({avatar}) {
     profileAvatar.src = avatar;
 
     closePopup(profileAvatarPopup);
 }
+
 function handleProfileFormSubmit(evt) {
     evt.preventDefault();
 
@@ -102,6 +105,7 @@ function handleProfileFormSubmit(evt) {
             submitButton.textContent = 'Сохранить';
         });
 }
+
 function handleProfileAvatarFormSubmit(evt) {
     evt.preventDefault();
 
@@ -119,14 +123,18 @@ function handleProfileAvatarFormSubmit(evt) {
             submitButton.textContent = 'Сохранить';
         });
 }
+
 function handleDeleteCard(cardElement, card) {
     deleteCard(card._id)
-        .then(() => {cardElement.remove()})
+        .then(() => {
+            cardElement.remove()
+        })
         .catch((err) => {
             console.log(`Ошибка при удалении карточки: ${err}`);
         })
 
 }
+
 function handleLikeClick(cardElement, card) {
     const likeButton = cardElement.querySelector('.card__like-button');
     const likeCount = cardElement.querySelector('.card__like-count');
@@ -159,6 +167,7 @@ function handleLikeClick(cardElement, card) {
             })
     }
 }
+
 function handleCardClick({name, link}) {
     popupImage.src = link;
     popupImage.alt = name;
@@ -166,6 +175,7 @@ function handleCardClick({name, link}) {
 
     openPopup(imagePopup);
 }
+
 function renderInitialCards(cards) {
     const fragment = document.createDocumentFragment();
 
@@ -182,11 +192,16 @@ function renderInitialCards(cards) {
 
     cardsList.append(fragment);
 }
+
 function submitCardForm(evt) {
     evt.preventDefault();
     try {
+        const submitButton = evt.target.querySelector('.popup__button');
         const name = nameInput.value;
         const link = urlInput.value;
+
+        submitButton.textContent = 'Создание...';
+
         addNewCard(name, link)
             .then((cardData) => {
                 const card = createCard(
@@ -203,6 +218,9 @@ function submitCardForm(evt) {
             })
             .catch((err) => {
                 console.log(`Ошибка при добавлении карточки: ${err}`);
+            })
+            .finally(() => {
+                submitButton.textContent = 'Создать';
             });
 
     } catch (error) {
