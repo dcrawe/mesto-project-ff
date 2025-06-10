@@ -17,9 +17,11 @@ import {
 const addButton = document.querySelector('.profile__add-button');
 const cardPopup = document.querySelector('.popup_type_new-card');
 const imagePopup = document.querySelector('.popup_type_image');
+const cardDeletePopup = document.querySelector('.popup_type_delete');
 const cardForm = document.querySelector('.popup__form[name="new-place"]');
 const nameInput = cardForm.querySelector('.popup__input_type_card-name');
 const urlInput = cardForm.querySelector('.popup__input_type_url');
+const cardDeleteForm = document.querySelector('.popup__form[name="card-delete"]');
 const cardsList = document.querySelector('.places__list');
 const popupImage = imagePopup.querySelector('.popup__image');
 const popupCaption = imagePopup.querySelector('.popup__caption');
@@ -55,6 +57,7 @@ const validationConfig = {
 
 setPopupEventListeners(cardPopup);
 setPopupEventListeners(imagePopup);
+setPopupEventListeners(cardDeletePopup);
 setPopupEventListeners(profilePopup);
 setPopupEventListeners(profileAvatarPopup);
 
@@ -113,6 +116,7 @@ function handleProfileAvatarFormSubmit(evt) {
     const submitButton = evt.target.querySelector('.popup__button');
 
     submitButton.textContent = 'Сохранение...';
+    submitButton.disabled = true;
 
     updateAvatar(avatarUrl)
         .then(updateProfileAvatar)
@@ -121,18 +125,14 @@ function handleProfileAvatarFormSubmit(evt) {
         })
         .finally(() => {
             submitButton.textContent = 'Сохранить';
+            submitButton.disabled = false;
         });
 }
 
 function handleDeleteCard(cardElement, card) {
-    deleteCard(card._id)
-        .then(() => {
-            cardElement.remove()
-        })
-        .catch((err) => {
-            console.log(`Ошибка при удалении карточки: ${err}`);
-        })
+    cardDeleteForm.dataset.cardId = card._id;
 
+    openPopup(cardDeletePopup);
 }
 
 function handleLikeClick(cardElement, card) {
@@ -201,6 +201,7 @@ function submitCardForm(evt) {
         const link = urlInput.value;
 
         submitButton.textContent = 'Создание...';
+        submitButton.disabled = true;
 
         addNewCard(name, link)
             .then((cardData) => {
@@ -221,11 +222,45 @@ function submitCardForm(evt) {
             })
             .finally(() => {
                 submitButton.textContent = 'Создать';
+                submitButton.disabled = false;
             });
 
     } catch (error) {
         console.error(error);
     }
+}
+
+function submitCardDeleteForm(evt) {
+    evt.preventDefault();
+
+    if (!cardDeleteForm.dataset.cardId) {
+        console.log('Не указан ID карточки для удаления');
+        return;
+    }
+
+    const cardId = cardDeleteForm.dataset.cardId;
+    const submitButton = evt.target.querySelector('.popup__button');
+
+    submitButton.textContent = 'Удаление...';
+    submitButton.disabled = true;
+
+    deleteCard(cardId)
+        .then(() => {
+            const cardToDelete = document.querySelector(`.card[data-card-id="${cardId}"]`);
+            if (cardToDelete) {
+                cardToDelete.remove();
+            }
+            closePopup(cardDeletePopup);
+
+            delete cardDeleteForm.dataset.cardId;
+        })
+        .catch((err) => {
+            console.log(`Ошибка при удалении карточки: ${err}`);
+        })
+        .finally(() => {
+            submitButton.textContent = 'Да';
+            submitButton.disabled = false;
+        });
 }
 
 addButton.addEventListener('click', () => {
@@ -246,6 +281,7 @@ editButton.addEventListener('click', () => {
 });
 profileForm.addEventListener('submit', handleProfileFormSubmit);
 cardForm.addEventListener('submit', submitCardForm);
+cardDeleteForm.addEventListener('submit', submitCardDeleteForm);
 profileAvatarForm.addEventListener('submit', handleProfileAvatarFormSubmit);
 
 
