@@ -90,6 +90,30 @@ function updateProfileAvatar({avatar}) {
     closePopup(profileAvatarPopup);
 }
 
+function validateImageUrl(url) {
+    return new Promise((resolve, reject) => {
+        fetch(url, { method: 'HEAD' })
+            .then(response => {
+                if (!response.ok) {
+                    reject(new Error(`URL недоступен: ${response.status} ${response.statusText}`));
+                    return;
+                }
+
+                const contentType = response.headers.get('Content-Type');
+
+                if (!contentType || !contentType.startsWith('image/')) {
+                    reject(new Error(`Указанный URL не является изображением: ${contentType}`));
+                    return;
+                }
+
+                resolve(url);
+            })
+            .catch(error => {
+                reject(new Error(`Ошибка проверки URL: ${error.message}`));
+            });
+    });
+}
+
 function handleProfileFormSubmit(evt) {
     evt.preventDefault();
 
@@ -118,7 +142,8 @@ function handleProfileAvatarFormSubmit(evt) {
     submitButton.textContent = 'Сохранение...';
     submitButton.disabled = true;
 
-    updateAvatar(avatarUrl)
+    validateImageUrl(avatarUrl)
+        .then(() => updateAvatar(avatarUrl))
         .then(updateProfileAvatar)
         .catch((err) => {
             console.log(`Ошибка при обновлении аватара: ${err}`);
@@ -203,7 +228,8 @@ function submitCardForm(evt) {
         submitButton.textContent = 'Создание...';
         submitButton.disabled = true;
 
-        addNewCard(name, link)
+        validateImageUrl(link)
+            .then(() =>  addNewCard(name, link))
             .then((cardData) => {
                 const card = createCard(
                     {...cardData, myCard: true},
