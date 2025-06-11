@@ -42,9 +42,6 @@ const profileAvatarPopup = document.querySelector('.popup_type_avatar');
 const profileAvatarForm = document.querySelector('.popup__form[name="profile-avatar"]');
 const profileAvatarInput = profileAvatarForm.querySelector('.popup__input_type_avatar');
 
-// https://pictures.s3.yandex.net/frontend-developer/common/ava.jpg
-// https://pictures.s3.yandex.net/frontend-developer/cards-compressed/arkhyz.jpg
-
 // Объект с настройками для валидации форм
 const validationConfig = {
     formSelector: '.popup__form',
