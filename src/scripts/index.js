@@ -66,7 +66,7 @@ setPopupEventListeners(cardDeletePopup);
 setPopupEventListeners(profilePopup);
 setPopupEventListeners(profileAvatarPopup);
 
-function renderLoading(button, isLoading, buttonText = 'Сохранить', loadingText = 'Сохранение...') {
+function renderLoading(button, isLoading = false, buttonText = 'Сохранить', loadingText = 'Сохранение...') {
     button.textContent = isLoading ? loadingText : buttonText;
     button.disabled = isLoading;
 }
