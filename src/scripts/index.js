@@ -160,34 +160,23 @@ function handleDeleteCard(cardElement, card) {
 function handleLikeClick(cardElement, card) {
     const likeButton = cardElement.querySelector('.card__like-button');
     const likeCount = cardElement.querySelector('.card__like-count');
+    const isLiked = likeButton.classList.contains('card__like-button_is-active');
+    const likeAction = isLiked ? removeLike : addLike;
 
-    if (likeButton.classList.contains('card__like-button_is-active')) {
-        removeLike(card._id)
-            .then((updatedCard) => {
-                likeCount.textContent = updatedCard.likes.length;
-                likeButton.classList.remove('card__like-button_is-active');
+    likeAction(card._id)
+        .then((updatedCard) => {
+            likeCount.textContent = updatedCard.likes.length;
+            likeButton.classList.toggle('card__like-button_is-active');
 
-                if (!updatedCard.likes.length) {
-                    likeCount.classList.add('hidden');
-                }
-            })
-            .catch((err) => {
-                console.log(`Ошибка при удалении лайка: ${err}`);
-            })
-    } else {
-        addLike(card._id)
-            .then((updatedCard) => {
-                likeCount.textContent = updatedCard.likes.length;
-                likeButton.classList.add('card__like-button_is-active');
-
-                if (updatedCard.likes.length) {
-                    likeCount.classList.remove('hidden');
-                }
-            })
-            .catch((err) => {
-                console.log(`Ошибка при добавлении лайка: ${err}`);
-            })
-    }
+            if (updatedCard.likes.length) {
+                likeCount.classList.remove('hidden');
+            } else {
+                likeCount.classList.add('hidden');
+            }
+        })
+        .catch((err) => {
+            console.log(`Ошибка при ${isLiked ? 'удалении' : 'добавлении'} лайка: ${err}`);
+        });
 }
 
 function handleCardClick({name, link}) {
