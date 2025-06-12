@@ -34,15 +34,11 @@ npm run build
 
 ## Структура проекта
 - `/src` — исходные файлы проекта
-    - `/components` — JavaScript-компоненты
-    - `/images` — изображения
-    - `/pages` — CSS-файлы и точка входа
-    - `/blocks` — CSS-блоки по методологии БЭМ
-
-## Планы по доработке
-- Добавить бэкенд и авторизацию пользователей
-- Реализовать сохранение данных на сервере
-- Добавить возможность увеличения изображений
+  - `/src/fonts` — шрифты
+  - `/src/images` — изображения
+  - `/src/scripts` —  JavaScript файлы
+    - `/src/scripts/components` — компоненты JavaScript
+    - `/src/scripts/utils` — утилиты JavaScript
 
 ## Автор
 - GitHub: [dcrawe](https://github.com/dcrawe)
