@@ -52,6 +52,9 @@ const validationConfig = {
     errorClass: 'popup__error_visible'
 };
 
+// Данные удаляемой карточки
+let cardToDeleteData = null;
+
 setPopupEventListeners(cardPopup);
 setPopupEventListeners(imagePopup);
 setPopupEventListeners(cardDeletePopup);
@@ -152,7 +155,7 @@ function handleProfileAvatarFormSubmit(evt) {
 }
 
 function handleDeleteCard(cardElement, card) {
-    cardDeleteForm.dataset.cardId = card._id;
+    cardToDeleteData = { cardElement, card };
 
     openPopup(cardDeletePopup);
 }
@@ -245,12 +248,12 @@ function submitCardForm(evt) {
 function submitCardDeleteForm(evt) {
     evt.preventDefault();
 
-    if (!cardDeleteForm.dataset.cardId) {
+    if (!cardToDeleteData || !cardToDeleteData.card._id) {
         console.log('Не указан ID карточки для удаления');
         return;
     }
 
-    const cardId = cardDeleteForm.dataset.cardId;
+    const cardId = cardToDeleteData.card._id;
     const submitButton = evt.target.querySelector('.popup__button');
 
     submitButton.textContent = 'Удаление...';
@@ -258,13 +261,12 @@ function submitCardDeleteForm(evt) {
 
     deleteCard(cardId)
         .then(() => {
-            const cardToDelete = document.querySelector(`.card[data-card-id="${cardId}"]`);
-            if (cardToDelete) {
-                cardToDelete.remove();
+            if (cardToDeleteData.cardElement) {
+                cardToDeleteData.cardElement.remove();
             }
             closePopup(cardDeletePopup);
 
-            delete cardDeleteForm.dataset.cardId;
+            cardToDeleteData = null;
         })
         .catch((err) => {
             console.log(`Ошибка при удалении карточки: ${err}`);

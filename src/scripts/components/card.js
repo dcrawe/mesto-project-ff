@@ -18,8 +18,6 @@ export function createCard(cardData, handleDeleteCard, handleLikeClick, handleCa
     cardImage.alt = cardData.name;
     cardTitle.textContent = cardData.name;
 
-    cardElement.dataset.cardId = cardData._id;
-
     if (cardData.liked) {
         likeButton.classList.add('card__like-button_is-active');
     }
