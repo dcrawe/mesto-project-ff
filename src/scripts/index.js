@@ -1,6 +1,6 @@
 import '../styles/pages/index.css';
 import {enableValidation, clearValidation} from './utils/validation.js';
-import {createCard} from './components/card.js';
+import {createCard, handleLikeClick} from './components/card.js';
 import {openPopup, closePopup, setPopupEventListeners} from './components/popup.js';
 import {
     getUserInfo,
@@ -18,9 +18,11 @@ const addButton = document.querySelector('.profile__add-button');
 const cardPopup = document.querySelector('.popup_type_new-card');
 const imagePopup = document.querySelector('.popup_type_image');
 const cardDeletePopup = document.querySelector('.popup_type_delete');
+const cardDeleteSubmitButton = cardDeletePopup.querySelector('.popup__button');
 const cardForm = document.querySelector('.popup__form[name="new-place"]');
 const nameInput = cardForm.querySelector('.popup__input_type_card-name');
 const urlInput = cardForm.querySelector('.popup__input_type_url');
+const submitButton = cardForm.querySelector('.popup__button');
 const cardDeleteForm = document.querySelector('.popup__form[name="card-delete"]');
 const cardsList = document.querySelector('.places__list');
 const popupImage = imagePopup.querySelector('.popup__image');
@@ -32,6 +34,7 @@ const profilePopup = document.querySelector('.popup_type_edit');
 const profileForm = document.querySelector('.popup__form[name="edit-profile"]');
 const profileTitleInput = profileForm.querySelector('.popup__input_type_name');
 const profileDescriptionInput = profileForm.querySelector('.popup__input_type_description');
+const profileSubmitButton = profileForm.querySelector('.popup__button');
 const profileContainer = document.querySelector('.profile__info');
 const profileTitle = document.querySelector('.profile__title');
 const profileDescription = document.querySelector('.profile__description');
@@ -41,6 +44,8 @@ const profileAvatarLink = document.querySelector('.profile__image');
 const profileAvatarPopup = document.querySelector('.popup_type_avatar');
 const profileAvatarForm = document.querySelector('.popup__form[name="profile-avatar"]');
 const profileAvatarInput = profileAvatarForm.querySelector('.popup__input_type_avatar');
+const profileAvatarSubmitButton = profileAvatarForm.querySelector('.popup__button');
+
 
 // Объект с настройками для валидации форм
 const validationConfig = {
@@ -60,6 +65,11 @@ setPopupEventListeners(imagePopup);
 setPopupEventListeners(cardDeletePopup);
 setPopupEventListeners(profilePopup);
 setPopupEventListeners(profileAvatarPopup);
+
+function renderLoading(button, isLoading, buttonText = 'Сохранить', loadingText = 'Сохранение...') {
+    button.textContent = isLoading ? loadingText : buttonText;
+    button.disabled = isLoading;
+}
 
 function fillProfileForm() {
     profileTitleInput.value = profileTitle.textContent;
@@ -91,45 +101,36 @@ function updateProfileAvatar({avatar}) {
 }
 
 function validateImageUrl(url) {
-    return new Promise((resolve, reject) => {
-        fetch(url, { method: 'HEAD' })
-            .then(response => {
-                if (!response.ok) {
-                    reject(new Error(`URL недоступен: ${response.status} ${response.statusText}`));
-                    return;
-                }
+    return fetch(url, {method: 'HEAD'})
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`URL недоступен: ${response.status} ${response.statusText}`);
+            }
 
-                const contentType = response.headers.get('Content-Type');
+            const contentType = response.headers.get('Content-Type');
 
-                if (!contentType || !contentType.startsWith('image/')) {
-                    reject(new Error(`Указанный URL не является изображением: ${contentType}`));
-                    return;
-                }
+            if (!contentType || !contentType.startsWith('image/')) {
+                throw new Error(`Указанный URL не является изображением: ${contentType}`);
+            }
 
-                resolve(url);
-            })
-            .catch(error => {
-                reject(new Error(`Ошибка проверки URL: ${error.message}`));
-            });
-    });
+            return url;
+        })
+        .catch(error => {
+            throw new Error(`Ошибка проверки URL: ${error.message}`);
+        });
 }
 
 function handleProfileFormSubmit(evt) {
     evt.preventDefault();
 
-    const nameInput = document.querySelector('.popup__input_type_name');
-    const descriptionInput = document.querySelector('.popup__input_type_description');
-    const submitButton = evt.target.querySelector('.popup__button');
-
-    submitButton.textContent = 'Сохранение...';
-
-    updateUserProfile(nameInput.value, descriptionInput.value)
+    renderLoading(profileSubmitButton, true);
+    updateUserProfile(profileTitleInput.value, profileDescriptionInput.value)
         .then(updateProfileInfo)
         .catch((err) => {
             console.log(`Ошибка при обновлении профиля: ${err}`);
         })
         .finally(() => {
-            submitButton.textContent = 'Сохранить';
+            renderLoading(profileSubmitButton);
         });
 }
 
@@ -137,11 +138,8 @@ function handleProfileAvatarFormSubmit(evt) {
     evt.preventDefault();
 
     const avatarUrl = profileAvatarInput.value;
-    const submitButton = evt.target.querySelector('.popup__button');
 
-    submitButton.textContent = 'Сохранение...';
-    submitButton.disabled = true;
-
+    renderLoading(profileAvatarSubmitButton, true);
     validateImageUrl(avatarUrl)
         .then(() => updateAvatar(avatarUrl))
         .then(updateProfileAvatar)
@@ -149,37 +147,14 @@ function handleProfileAvatarFormSubmit(evt) {
             console.log(`Ошибка при обновлении аватара: ${err}`);
         })
         .finally(() => {
-            submitButton.textContent = 'Сохранить';
-            submitButton.disabled = false;
+            renderLoading(profileAvatarSubmitButton);
         });
 }
 
 function handleDeleteCard(cardElement, card) {
-    cardToDeleteData = { cardElement, card };
+    cardToDeleteData = {cardElement, card};
 
     openPopup(cardDeletePopup);
-}
-
-function handleLikeClick(cardElement, card) {
-    const likeButton = cardElement.querySelector('.card__like-button');
-    const likeCount = cardElement.querySelector('.card__like-count');
-    const isLiked = likeButton.classList.contains('card__like-button_is-active');
-    const likeAction = isLiked ? removeLike : addLike;
-
-    likeAction(card._id)
-        .then((updatedCard) => {
-            likeCount.textContent = updatedCard.likes.length;
-            likeButton.classList.toggle('card__like-button_is-active');
-
-            if (updatedCard.likes.length) {
-                likeCount.classList.remove('hidden');
-            } else {
-                likeCount.classList.add('hidden');
-            }
-        })
-        .catch((err) => {
-            console.log(`Ошибка при ${isLiked ? 'удалении' : 'добавлении'} лайка: ${err}`);
-        });
 }
 
 function handleCardClick({name, link}) {
@@ -209,57 +184,48 @@ function renderInitialCards(cards) {
 
 function submitCardForm(evt) {
     evt.preventDefault();
-    try {
-        const submitButton = evt.target.querySelector('.popup__button');
-        const name = nameInput.value;
-        const link = urlInput.value;
+    const name = nameInput.value;
+    const link = urlInput.value;
+    const defaultText = 'Создать';
+    const loadingText = 'Создание...';
 
-        submitButton.textContent = 'Создание...';
-        submitButton.disabled = true;
+    renderLoading(submitButton, true, defaultText, loadingText);
+    validateImageUrl(link)
+        .then(() => addNewCard(name, link))
+        .then((cardData) => {
+            const card = createCard(
+                {...cardData, myCard: true},
+                handleDeleteCard,
+                handleLikeClick,
+                handleCardClick
+            );
 
-        validateImageUrl(link)
-            .then(() =>  addNewCard(name, link))
-            .then((cardData) => {
-                const card = createCard(
-                    {...cardData, myCard: true},
-                    handleDeleteCard,
-                    handleLikeClick,
-                    handleCardClick
-                );
-
-                cardsList.prepend(card);
-                cardForm.reset();
-                clearValidation(cardForm, validationConfig);
-                closePopup(cardPopup);
-            })
-            .catch((err) => {
-                console.log(`Ошибка при добавлении карточки: ${err}`);
-            })
-            .finally(() => {
-                submitButton.textContent = 'Создать';
-                submitButton.disabled = false;
-            });
-
-    } catch (error) {
-        console.error(error);
-    }
+            cardsList.prepend(card);
+            cardForm.reset();
+            clearValidation(cardForm, validationConfig);
+            closePopup(cardPopup);
+        })
+        .catch((err) => {
+            console.log(`Ошибка при добавлении карточки: ${err}`);
+        })
+        .finally(() => {
+            renderLoading(submitButton, false, defaultText, loadingText);
+        });
 }
 
 function submitCardDeleteForm(evt) {
     evt.preventDefault();
 
-    if (!cardToDeleteData || !cardToDeleteData.card._id) {
+    if (!cardToDeleteData?.card?._id) {
         console.log('Не указан ID карточки для удаления');
         return;
     }
 
-    const cardId = cardToDeleteData.card._id;
-    const submitButton = evt.target.querySelector('.popup__button');
+    const defaultText = 'Да';
+    const loadingText = 'Удаление...';
 
-    submitButton.textContent = 'Удаление...';
-    submitButton.disabled = true;
-
-    deleteCard(cardId)
+    renderLoading(cardDeleteSubmitButton, true, defaultText, loadingText);
+    deleteCard(cardToDeleteData.card._id)
         .then(() => {
             if (cardToDeleteData.cardElement) {
                 cardToDeleteData.cardElement.remove();
@@ -272,8 +238,7 @@ function submitCardDeleteForm(evt) {
             console.log(`Ошибка при удалении карточки: ${err}`);
         })
         .finally(() => {
-            submitButton.textContent = 'Да';
-            submitButton.disabled = false;
+            renderLoading(cardDeleteSubmitButton, false, defaultText, loadingText);
         });
 }
 
